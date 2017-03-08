@@ -1,3 +1,4 @@
 {
-  "name": "af-awesome"
+  "name": "af-awesome",
+  "main": "atp2.min.js"
 }
