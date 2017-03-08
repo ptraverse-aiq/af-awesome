@@ -1331,211 +1331,208 @@
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-document.addEventListener("DOMContentLoaded", function(event) {
 
-		function AIQ(){
+function AIQ(){
 
-			this.aid = '';
-			var options = {
-				excludeScreenResolution: true,
-				excludeAvailableScreenResolution: true,
-				excludeColorDepth: true,
-				excludePixelRatio: true,
-				excludeHardwareConcurrency: true,
-				excludeHasLiedResolution: true
-			};
-			var server = 'http://jewel.aiqservices.com';
+	this.aid = '';
+	var options = {
+		excludeScreenResolution: true,
+		excludeAvailableScreenResolution: true,
+		excludeColorDepth: true,
+		excludePixelRatio: true,
+		excludeHardwareConcurrency: true,
+		excludeHasLiedResolution: true
+	};
+	var server = 'http://jewel.aiqservices.com';
 
-			var str_rot13 = function(str) {
-				return (str + '')
-			    .replace(/[a-z]/gi, function (s) {
-			      return String.fromCharCode(s.charCodeAt(0) + (s.toLowerCase() < 'n' ? 13 : -13))
-			    })
-			};
+	var str_rot13 = function(str) {
+		return (str + '')
+	    .replace(/[a-z]/gi, function (s) {
+	      return String.fromCharCode(s.charCodeAt(0) + (s.toLowerCase() < 'n' ? 13 : -13))
+	    })
+	};
 
-			this.init = function(aid){
-				new Fingerprint2(options).get(function(result, components){
-					this.aid = aid;
-					var pixel = document.createElement("img");
-					pixel.src = server + "/p/" + this.aid + "/" + result + "/i/" + Math.floor(Date.now());
-					pixel = {};
+	this.init = function(aid){
+		new Fingerprint2(options).get(function(result, components){
+			this.aid = aid;
+			var pixel = document.createElement("img");
+			pixel.src = server + "/p/" + this.aid + "/" + result + "/i/" + Math.floor(Date.now());
+			pixel = {};
+		});
+	};
+
+	this.event = function(ev, value){
+		new Fingerprint2(options).get(function(result, components){
+			var pixel = document.createElement("img");
+			pixel.src = server + "/p/" + this.aid + "/" + result + "/e/" + str_rot13(ev) + "/" + str_rot13(value) + "/" + Math.floor(Date.now());
+			pixel = {};
+		});
+	};
+
+	this.send = function(key, value){
+		new Fingerprint2(options).get(function(result, components){
+			var pixel = document.createElement("img");
+			pixel.src = server + "/p/" + this.aid + "/" + result + "/d/" + str_rot13(key) + "/" + str_rot13(value) + "/" + Math.floor(Date.now());
+			pixel = {};
+		});
+	};
+
+  this.test = function(str) {
+    console.log('Logging from AF: ' + str);
+  };
+
+};
+
+// Init AIQ Object to play with
+var a = new AIQ;
+
+/**
+* Send button click event to pixel server along with "af-button" attribute value
+* Binds to any element with attribute 'af-button'
+* TODO Test on IE
+*/
+var buttonNodes = document.querySelectorAll('[af-button]');
+if (buttonNodes) {
+	for (var b = 0; b < buttonNodes.length; ++b) {
+		var btn = buttonNodes[b];
+		if (btn.addEventListener) { // W3C
+			btn.addEventListener('click', function() {
+				a.event('click', this.getAttribute('af-button'));
+			}, false);
+		} else if (btn.attachEvent) { // IE
+			btn.attachEvent('onclick', function() {
+				a.event('click', this.getAttribute('af-button'));
+			});
+		}
+	}
+}
+
+/**
+* Send custom event on button click to pixel server
+* Binds to any element with attribute 'af-event-name'
+* TODO - Test on IE
+*/
+var customEventNodes = document.querySelectorAll('[af-event-name]');
+if (customEventNodes) {
+	for (var c = 0; c < customEventNodes.length; ++c) {
+		var el = customEventNodes[c];
+		if (el.addEventListener) { // W3C
+			el.addEventListener('click', function() {
+				var customEventName = this.getAttribute('af-event-name');
+				var customEventValue = this.getAttribute('af-event-val');
+				a.event(customEventName, customEventValue);
+			}, false);
+		} else if (el.attachEvent) { // IE
+			el.attachEvent('onclick', function() {
+				var customEventName = this.getAttribute('af-event-name');
+				var customEventValue = this.getAttribute('af-event-val');
+				a.event(customEventName, customEventValue);
+			});
+		}
+	}
+}
+
+
+
+/**
+* Send form values to pixel server right before submit
+* Binds to any form with attribute 'af-form'
+* TODO Test on IE
+**/
+var formNodes = document.querySelectorAll('[af-form]');
+if (formNodes) {
+	for (var f = 0; f < formNodes.length; ++f) {
+	  var form = formNodes[f];
+		if (form.addEventListener) { // W3C
+			form.addEventListener('submit', function() {
+				a.event('submit', this.getAttribute('af-form'));
+				var inputs = this.querySelectorAll('input, select');
+				var inputArray = [];
+				for (var i = 0; i < inputs.length; ++i) {
+					inputArray.push({
+						'name': inputs[i].name,
+						'value': inputs[i].value
+					});
+				}
+				inputArray.forEach(function(x) {
+					a.send(x.name, x.value);
 				});
-			};
-
-			this.event = function(ev, value){
-				new Fingerprint2(options).get(function(result, components){
-					var pixel = document.createElement("img");
-					pixel.src = server + "/p/" + this.aid + "/" + result + "/e/" + str_rot13(ev) + "/" + str_rot13(value) + "/" + Math.floor(Date.now());
-					pixel = {};
+			}, false);
+		} else if (form.attachEvent) { // IE
+			form.attachEvent('onSubmit', function() {
+				var inputs = this.querySelectorAll('input, select');
+				var inputArray = [];
+				for (var i = 0; i < inputs.length; ++i) {
+					inputArray.push({
+						'name': inputs[i].name,
+						'value': inputs[i].value
+					});
+				}
+				a.event('submit', this.getAttribute('af-form'));
+				inputArray.forEach(function(x) {
+					a.send(x.name, x.value);
 				});
-			};
+			});
+		}
+	}
+}
 
-			this.send = function(key, value){
-				new Fingerprint2(options).get(function(result, components){
-					var pixel = document.createElement("img");
-					pixel.src = server + "/p/" + this.aid + "/" + result + "/d/" + str_rot13(key) + "/" + str_rot13(value) + "/" + Math.floor(Date.now());
-					pixel = {};
+/**
+ * Helper function to get Sibling Input/Select Nodes without jquery
+ */
+function _getSiblingInputs(el) {
+	var siblings = [].slice.call(el.parentNode.querySelectorAll('input, select')) // convert to array
+             .filter(function(v) { return v !== el }) // remove element itself
+
+	return siblings;
+}
+
+/**
+* Send AJAX form values to pixel server right before submit
+* Binds to any element with attribute 'af-ajax-form' containing child element
+*  with attribute 'af-ajax-form-submit' and sends any siblings of the submit
+*  that are input or select elements, and submits their values to the pixel
+*  server.
+* TODO Test on IE
+**/
+var ajaxFormNodes = document.querySelectorAll('[af-ajax-form]');
+if (ajaxFormNodes) {
+	for (var f = 0; f < ajaxFormNodes.length; ++f) {
+	  var form = ajaxFormNodes[f];
+		var ajaxFormSubmit = form.querySelectorAll('[af-ajax-form-submit]')[0];
+		if (ajaxFormSubmit.addEventListener) { // W3C
+			ajaxFormSubmit.addEventListener('click', function() {
+				a.event('submit', this.getAttribute('af-ajax-form-submit'));
+				var inputs = _getSiblingInputs(this);
+				var inputArray = [];
+				for (var i = 0; i < inputs.length; ++i) {
+					inputArray.push({
+						'name': inputs[i].name,
+						'value': inputs[i].value
+					});
+				}
+				inputArray.forEach(function(x) {
+					a.send(x.name, x.value);
 				});
-			};
-
-      this.test = function(str) {
-        console.log('Logging from AF: ' + str);
-      };
-
-		};
-
-		// Init AIQ Object to play with
-		var a = new AIQ;
-
-		/**
-		* Send button click event to pixel server along with "af-button" attribute value
-		* Binds to any element with attribute 'af-button'
-		* TODO Test on IE
-		*/
-		var buttonNodes = document.querySelectorAll('[af-button]');
-		if (buttonNodes) {
-			for (var b = 0; b < buttonNodes.length; ++b) {
-				var btn = buttonNodes[b];
-				if (btn.addEventListener) { // W3C
-					btn.addEventListener('click', function() {
-						a.event('click', this.getAttribute('af-button'));
-					}, false);
-				} else if (btn.attachEvent) { // IE
-					btn.attachEvent('onclick', function() {
-						a.event('click', this.getAttribute('af-button'));
+			}, false);
+		} else if (ajaxFormSubmit.attachEvent) { // IE
+			ajaxFormSubmit.attachEvent('onClick', function() {
+				a.event('submit', this.getAttribute('af-ajax-form-submit'));
+				var inputs = _getSiblingInputs(this);
+				var inputArray = [];
+				for (var i = 0; i < inputs.length; ++i) {
+					inputArray.push({
+						'name': inputs[i].name,
+						'value': inputs[i].value
 					});
 				}
-			}
+				inputArray.forEach(function(x) {
+					a.send(x.name, x.value);
+				});
+			});
 		}
+	}
+}
 
-		/**
-		* Send custom event on button click to pixel server
-		* Binds to any element with attribute 'af-event-name'
-		* TODO - Test on IE
-		*/
-		var customEventNodes = document.querySelectorAll('[af-event-name]');
-		if (customEventNodes) {
-			for (var c = 0; c < customEventNodes.length; ++c) {
-				var el = customEventNodes[c];
-				if (el.addEventListener) { // W3C
-					el.addEventListener('click', function() {
-						var customEventName = this.getAttribute('af-event-name');
-						var customEventValue = this.getAttribute('af-event-val');
-						a.event(customEventName, customEventValue);
-					}, false);
-				} else if (el.attachEvent) { // IE
-					el.attachEvent('onclick', function() {
-						var customEventName = this.getAttribute('af-event-name');
-						var customEventValue = this.getAttribute('af-event-val');
-						a.event(customEventName, customEventValue);
-					});
-				}
-			}
-		}
-
-
-
-		/**
-		* Send form values to pixel server right before submit
-		* Binds to any form with attribute 'af-form'
-		* TODO Test on IE
-		**/
-		var formNodes = document.querySelectorAll('[af-form]');
-		if (formNodes) {
-			for (var f = 0; f < formNodes.length; ++f) {
-			  var form = formNodes[f];
-				if (form.addEventListener) { // W3C
-					form.addEventListener('submit', function() {
-						a.event('submit', this.getAttribute('af-form'));
-						var inputs = this.querySelectorAll('input, select');
-						var inputArray = [];
-						for (var i = 0; i < inputs.length; ++i) {
-							inputArray.push({
-								'name': inputs[i].name,
-								'value': inputs[i].value
-							});
-						}
-						inputArray.forEach(function(x) {
-							a.send(x.name, x.value);
-						});
-					}, false);
-				} else if (form.attachEvent) { // IE
-					form.attachEvent('onSubmit', function() {
-						var inputs = this.querySelectorAll('input, select');
-						var inputArray = [];
-						for (var i = 0; i < inputs.length; ++i) {
-							inputArray.push({
-								'name': inputs[i].name,
-								'value': inputs[i].value
-							});
-						}
-						a.event('submit', this.getAttribute('af-form'));
-						inputArray.forEach(function(x) {
-							a.send(x.name, x.value);
-						});
-					});
-				}
-			}
-		}
-
-		/**
-		 * Helper function to get Sibling Input/Select Nodes without jquery
-		 */
-		function _getSiblingInputs(el) {
-			var siblings = [].slice.call(el.parentNode.querySelectorAll('input, select')) // convert to array
-                 .filter(function(v) { return v !== el }) // remove element itself
-
-			return siblings;
-		}
-
-		/**
-		* Send AJAX form values to pixel server right before submit
-		* Binds to any element with attribute 'af-ajax-form' containing child element
-		*  with attribute 'af-ajax-form-submit' and sends any siblings of the submit
-		*  that are input or select elements, and submits their values to the pixel
-		*  server.
-		* TODO Test on IE
-		**/
-		var ajaxFormNodes = document.querySelectorAll('[af-ajax-form]');
-		if (ajaxFormNodes) {
-			for (var f = 0; f < ajaxFormNodes.length; ++f) {
-			  var form = ajaxFormNodes[f];
-				var ajaxFormSubmit = form.querySelectorAll('[af-ajax-form-submit]')[0];
-				if (ajaxFormSubmit.addEventListener) { // W3C
-					ajaxFormSubmit.addEventListener('click', function() {
-						a.event('submit', this.getAttribute('af-ajax-form-submit'));
-						var inputs = _getSiblingInputs(this);
-						var inputArray = [];
-						for (var i = 0; i < inputs.length; ++i) {
-							inputArray.push({
-								'name': inputs[i].name,
-								'value': inputs[i].value
-							});
-						}
-						inputArray.forEach(function(x) {
-							a.send(x.name, x.value);
-						});
-					}, false);
-				} else if (ajaxFormSubmit.attachEvent) { // IE
-					ajaxFormSubmit.attachEvent('onClick', function() {
-						a.event('submit', this.getAttribute('af-ajax-form-submit'));
-						var inputs = _getSiblingInputs(this);
-						var inputArray = [];
-						for (var i = 0; i < inputs.length; ++i) {
-							inputArray.push({
-								'name': inputs[i].name,
-								'value': inputs[i].value
-							});
-						}
-						inputArray.forEach(function(x) {
-							a.send(x.name, x.value);
-						});
-					});
-				}
-			}
-		}
-
-    // Attach to Window so we can use it in HTML pages
-    window.aiq = a;
-
-});
+// Attach to Window so we can use it in HTML pages
+window.aiq = a;
