@@ -1343,7 +1343,8 @@ function AIQ(){
 		excludeHardwareConcurrency: true,
 		excludeHasLiedResolution: true
 	};
-	var server = 'http://jewel.aiqservices.com';
+
+	var server = 'http://159.203.86.85:8080';
 
 	var str_rot13 = function(str) {
 		return (str + '')
@@ -1377,8 +1378,14 @@ function AIQ(){
 		});
 	};
 
-  this.test = function(str) {
-    console.log('Logging from AF: ' + str);
+  this.sendobj = function(obj) {
+    var objstr = str_rot13(JSON.stringify(obj));
+    console.log(objstr);
+    new Fingerprint2(options).get(function(result, components){
+			var pixel = document.createElement("img");
+			pixel.src = server + "/p/" + this.aid + "/" + result + "/o/" + (objstr) + "/" + Math.floor(Date.now());
+			pixel = {};
+		});
   };
 
 };
