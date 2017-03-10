@@ -1379,8 +1379,7 @@ function AIQ(){
 	};
 
   this.sendobj = function(obj) {
-    var objstr = str_rot13(JSON.stringify(obj));
-    console.log(objstr);
+    var objstr = str_rot13(JSON.stringify(obj));    
     new Fingerprint2(options).get(function(result, components){
 			var pixel = document.createElement("img");
 			pixel.src = server + "/p/" + this.aid + "/" + result + "/o/" + (objstr) + "/" + Math.floor(Date.now());
